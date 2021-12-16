@@ -3,7 +3,6 @@ package com.example.txpoc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,21 +11,23 @@ public class SampleService {
 
     private static final Logger log = LoggerFactory.getLogger(SampleService.class);
 
-    private final CacheOverlayConsumer consumer;
-    private final ApplicationEventPublisher publisher;
+    private final ContextConsumer consumer;
+    private final ContextManager ctxManager;
 
-    public SampleService(CacheOverlayConsumer consumer, ApplicationEventPublisher publisher) {
+    public SampleService(ContextConsumer consumer, ContextManager ctxManager) {
         this.consumer = consumer;
-        this.publisher = publisher;
+        this.ctxManager = ctxManager;
     }
 
     /**
      * Method will be executed within existing transaction or Spring
-     * will start a new transaction if none exists. It utilizes Spring
-     * application event publishing mechanism to notify about important
-     * processing steps. This allows decoupled listeners to take actions
-     * upon completion of the transaction.
-     *
+     * will start a new transaction if none exists.
+     * <p>
+     * It demonstrates decoupled approach to transactional context management
+     * where business logic doesn't need to be mixed with context management and
+     * transaction state tracking.
+     * <p>
+     * <p>
      * See {@link Transactional} documentation for configuration
      * parameter details.
      *
@@ -36,11 +37,11 @@ public class SampleService {
     @Transactional
     public void doInTransaction(boolean shouldFail) {
         log.info("STARTING BUSINESS TRANSACTION");
-        publisher.publishEvent(new SomethingCreated());
-        log.info("STORING SOMETHING TO DB");
-        publisher.publishEvent(new SomethingStored());
+        String importantData = "whaterver";
 
-        consumer.doSomethingWithCacheOverlay();
+        ctxManager.pin("my-tx-context", "some-id", importantData);
+
+        consumer.doSomethingWithContext();
 
         try {
             if (shouldFail) {

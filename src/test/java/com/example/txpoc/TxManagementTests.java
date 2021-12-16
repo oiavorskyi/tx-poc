@@ -18,8 +18,8 @@ public class TxManagementTests {
 
     /**
      * See output logs in console for processing details. Note how
-     * {@link SomethingStored} event is processed only after transaction has
-     * been committed, even though in the {@link SampleService} code it
+     * {@link TransactionalContextCreatedEvent} event is processed only after transaction has
+     * been committed, even though in the {@link TransactionalContextManager} code it
      * is published way ahead.
      */
     @Test
@@ -29,8 +29,8 @@ public class TxManagementTests {
 
     /**
      * See output logs in console for processing details. Note that the
-     * transaction is rolled back and there is no cache overlay flushing or
-     * message publishing as a result.
+     * transaction is rolled back and the transactional context is discarded.
+     * Also, there is no message publishing in this case.
      */
     @Test
     public void shouldHandleFailedTx() {
